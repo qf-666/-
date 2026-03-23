@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
@@ -53,8 +53,7 @@ jobs:
           zip -qry MusicConvert-unsigned.ipa Payload
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: MusicConvert-unsigned-ipa
           path: dist/MusicConvert-unsigned.ipa
-
