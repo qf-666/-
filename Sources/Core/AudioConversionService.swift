@@ -2,7 +2,11 @@ import FFmpegSupport
 import Foundation
 
 struct AudioConversionService {
-    func convert(input: ImportedAudioFile, to outputFormat: AudioFormat) async throws -> URL {
+    func convert(
+        input: ImportedAudioFile,
+        to outputFormat: AudioFormat,
+        quality: AudioQuality
+    ) async throws -> URL {
         let fileManager = FileManager.default
         let outputDirectory = try fileManager.url(
             for: .cachesDirectory,
@@ -18,7 +22,7 @@ struct AudioConversionService {
         )
 
         let outputURL = outputDirectory
-            .appendingPathComponent("\(input.baseName)-converted")
+            .appendingPathComponent(uniqueOutputStem(for: input.baseName))
             .appendingPathExtension(outputFormat.fileExtension)
 
         if fileManager.fileExists(atPath: outputURL.path) {
@@ -31,7 +35,7 @@ struct AudioConversionService {
             "-y",
             "-i",
             input.localURL.path
-        ] + outputFormat.ffmpegArguments + [
+        ] + outputFormat.ffmpegArguments(for: quality) + [
             outputURL.path
         ]
 
@@ -48,5 +52,9 @@ struct AudioConversionService {
         }
 
         return outputURL
+    }
+
+    private func uniqueOutputStem(for baseName: String) -> String {
+        "\(baseName)-converted-\(UUID().uuidString.prefix(8))"
     }
 }
