@@ -7,10 +7,10 @@ final class ConversionViewModel: ObservableObject {
     @Published var selectedFormat: AudioFormat = .flac
     @Published var selectedQuality: AudioQuality = .bitrate320
     @Published var errorMessage: String?
-    @Published var statusMessage = "Ready"
+    @Published var statusMessage = AppText.statusReady
     @Published var isConverting = false
     @Published var isPaused = false
-    @Published var currentFileName = "None"
+    @Published var currentFileName = AppText.currentNone
     @Published var activityLog: [ActivityLogEntry] = []
 
     private let service = AudioConversionService()
@@ -32,8 +32,8 @@ final class ConversionViewModel: ObservableObject {
         do {
             let importedFiles = try ImportedAudioFile.copyingManyFromPicker(urls)
             guard !importedFiles.isEmpty else {
-                errorMessage = "No supported local audio files were imported."
-                appendLog("Import skipped: no supported files were selected.")
+                errorMessage = AppText.importUnsupported
+                appendLog(AppText.importSkipped)
                 return
             }
             appendImportedFiles(importedFiles)
@@ -46,7 +46,7 @@ final class ConversionViewModel: ObservableObject {
         do {
             let importedFiles = try ImportedAudioFile.copyingAudioFilesFromDirectory(url)
             guard !importedFiles.isEmpty else {
-                errorMessage = "No supported audio files were found in that folder."
+                errorMessage = AppText.importFolderEmpty
                 return
             }
             appendImportedFiles(importedFiles)
@@ -57,20 +57,20 @@ final class ConversionViewModel: ObservableObject {
 
     func clearQueue() {
         guard !isConverting else {
-            errorMessage = "Clear the queue after the active batch finishes."
+            errorMessage = AppText.clearQueueBlocked
             return
         }
 
         queueItems.removeAll()
-        currentFileName = "None"
-        statusMessage = "Queue cleared."
-        appendLog("Cleared the conversion queue.")
+        currentFileName = AppText.currentNone
+        statusMessage = AppText.statusQueueCleared
+        appendLog(AppText.logQueueCleared)
     }
 
     func startConversion() {
         guard !isConverting else { return }
         guard waitingCount > 0 else {
-            errorMessage = "Add at least one waiting file before starting."
+            errorMessage = AppText.startNeedsFiles
             return
         }
 
@@ -78,8 +78,8 @@ final class ConversionViewModel: ObservableObject {
         isPaused = false
         stopRequested = false
         statusMessage = waitingCount == 1
-            ? "Starting a single conversion."
-            : "Starting a batch of \(waitingCount) files."
+            ? AppText.statusSingleStart
+            : AppText.statusBatchStart(waitingCount)
         appendLog(statusMessage)
 
         batchTask = Task { [weak self] in
@@ -92,11 +92,11 @@ final class ConversionViewModel: ObservableObject {
         isPaused.toggle()
 
         if isPaused {
-            statusMessage = "Paused. The current file will finish first."
-            appendLog("Pause requested.")
+            statusMessage = AppText.statusPaused
+            appendLog(AppText.logPauseRequested)
         } else {
-            statusMessage = "Resuming the queue."
-            appendLog("Queue resumed.")
+            statusMessage = AppText.statusResuming
+            appendLog(AppText.logQueueResumed)
         }
     }
 
@@ -104,13 +104,13 @@ final class ConversionViewModel: ObservableObject {
         guard isConverting else { return }
         stopRequested = true
         isPaused = false
-        statusMessage = "Stop requested. The current file will finish first."
-        appendLog("Stop requested for the active batch.")
+        statusMessage = AppText.statusStopRequested
+        appendLog(AppText.logStopRequested)
     }
 
     func present(error: Error) {
         errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
-        appendLog("Error: \(errorMessage ?? "Unknown error")")
+        appendLog(AppText.logError(errorMessage ?? "Unknown error"))
     }
 
     private func appendImportedFiles(_ importedFiles: [ImportedAudioFile]) {
@@ -124,12 +124,12 @@ final class ConversionViewModel: ObservableObject {
         }
 
         if insertedCount == 0 {
-            statusMessage = "All selected files were already in the queue."
+            statusMessage = AppText.queueDuplicate
             appendLog(statusMessage)
         } else {
             statusMessage = insertedCount == 1
-                ? "Added 1 file to the queue."
-                : "Added \(insertedCount) files to the queue."
+                ? AppText.queueAddedSingle
+                : AppText.queueAdded(insertedCount)
             appendLog(statusMessage)
         }
     }
@@ -151,12 +151,12 @@ final class ConversionViewModel: ObservableObject {
 
             updateItem(itemID) {
                 $0.status = .converting
-                $0.detail = "Running FFmpeg"
+                $0.detail = AppText.logRunningFFmpeg
             }
 
             currentFileName = item.file.originalName
-            statusMessage = "Converting \(item.file.originalName)"
-            appendLog("Starting \(item.file.originalName)")
+            statusMessage = AppText.converting(item.file.originalName)
+            appendLog(AppText.logStarting(item.file.originalName))
 
             do {
                 let outputURL = try await service.convert(
@@ -167,32 +167,32 @@ final class ConversionViewModel: ObservableObject {
 
                 updateItem(itemID) {
                     $0.status = .success
-                    $0.detail = "Saved in app storage"
+                    $0.detail = AppText.queueDetailSaved
                     $0.outputURL = outputURL
                 }
-                appendLog("Success: \(item.file.originalName) -> \(outputURL.lastPathComponent)")
+                appendLog(AppText.logSuccess(item.file.originalName, output: outputURL.lastPathComponent))
             } catch {
                 updateItem(itemID) {
                     $0.status = .failed
                     $0.detail = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
                 }
-                appendLog("Failed: \(item.file.originalName)")
+                appendLog(AppText.logFailed(item.file.originalName))
             }
         }
 
         isConverting = false
         isPaused = false
-        currentFileName = "None"
+        currentFileName = AppText.currentNone
 
         if stopRequested {
             statusMessage = remainingCount == 0
-                ? "Stop completed. No files remain."
-                : "Stopped with \(waitingCount) files still waiting."
+                ? AppText.statusStopComplete
+                : AppText.statusStopped(waiting: waitingCount)
             appendLog(statusMessage)
         } else {
             statusMessage = successCount == totalCount
-                ? "Batch complete. All files succeeded."
-                : "Batch complete. \(successCount) succeeded, \(failedCount) failed."
+                ? AppText.statusAllSucceeded
+                : AppText.statusBatchFinished(success: successCount, failed: failedCount)
             appendLog(statusMessage)
         }
     }

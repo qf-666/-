@@ -11,11 +11,11 @@ private enum DashboardPanel: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .queue:
-            return "Queue"
+            return AppText.panelQueue
         case .log:
-            return "Log"
+            return AppText.panelLog
         case .stats:
-            return "Stats"
+            return AppText.panelStats
         }
     }
 }
@@ -53,7 +53,7 @@ struct ContentView: View {
                         .padding(20)
                     }
                 }
-                .navigationTitle("MusicConvert")
+                .navigationTitle(AppText.appTitle)
             }
         }
         .fileImporter(
@@ -89,7 +89,7 @@ struct ContentView: View {
             }
         }
         .alert(
-            "Unable to Continue",
+            AppText.alertTitle,
             isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
                 set: { shouldShow in
@@ -99,7 +99,7 @@ struct ContentView: View {
                 }
             )
         ) {
-            Button("OK", role: .cancel) {}
+            Button(AppText.alertButton, role: .cancel) {}
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
@@ -134,11 +134,11 @@ struct ContentView: View {
 
     private var heroCard: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Batch audio conversion for local files.")
+            Text(AppText.heroTitle)
                 .font(.system(size: 30, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
 
-            Text("Import files or a folder, queue them up, then run a batch with logs, stats, and per-item export.")
+            Text(AppText.heroSubtitle)
                 .font(.system(size: 15, weight: .medium, design: .rounded))
                 .foregroundStyle(.white.opacity(0.82))
 
@@ -162,10 +162,10 @@ struct ContentView: View {
 
     private var summaryStrip: some View {
         HStack(spacing: 12) {
-            statChip(title: "Total", value: "\(viewModel.totalCount)")
-            statChip(title: "Waiting", value: "\(viewModel.waitingCount)")
-            statChip(title: "Success", value: "\(viewModel.successCount)")
-            statChip(title: "Failed", value: "\(viewModel.failedCount)")
+            statChip(title: AppText.statTotal, value: "\(viewModel.totalCount)")
+            statChip(title: AppText.statWaiting, value: "\(viewModel.waitingCount)")
+            statChip(title: AppText.statSuccess, value: "\(viewModel.successCount)")
+            statChip(title: AppText.statFailed, value: "\(viewModel.failedCount)")
         }
     }
 
@@ -186,24 +186,24 @@ struct ContentView: View {
 
     private var importCard: some View {
         VStack(alignment: .leading, spacing: 14) {
-            sectionTitle("Import")
+            sectionTitle(AppText.sectionImport)
 
             actionButton(
-                title: "Import Folder",
+                title: AppText.buttonImportFolder,
                 systemImage: "folder.badge.plus"
             ) {
                 isFolderImporterPresented = true
             }
 
             actionButton(
-                title: "Select Multiple Files",
+                title: AppText.buttonSelectFiles,
                 systemImage: "doc.badge.plus"
             ) {
                 isAudioImporterPresented = true
             }
 
             secondaryButton(
-                title: "Clear Queue",
+                title: AppText.buttonClearQueue,
                 systemImage: "trash"
             ) {
                 viewModel.clearQueue()
@@ -221,14 +221,14 @@ struct ContentView: View {
 
     private var settingsCard: some View {
         VStack(alignment: .leading, spacing: 14) {
-            sectionTitle("Settings")
+            sectionTitle(AppText.sectionSettings)
 
             VStack(alignment: .leading, spacing: 6) {
-                Text("Output Format")
+                Text(AppText.labelOutputFormat)
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.82))
 
-                Picker("Output Format", selection: $viewModel.selectedFormat) {
+                Picker(AppText.labelOutputFormat, selection: $viewModel.selectedFormat) {
                     ForEach(AudioFormat.allCases) { format in
                         Text(format.displayName).tag(format)
                     }
@@ -242,13 +242,13 @@ struct ContentView: View {
             }
 
             VStack(alignment: .leading, spacing: 6) {
-                Text("Quality")
+                Text(AppText.labelQuality)
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.82))
 
-                Picker("Quality", selection: $viewModel.selectedQuality) {
+                Picker(AppText.labelQuality, selection: $viewModel.selectedQuality) {
                     ForEach(AudioQuality.allCases) { quality in
-                        Text(quality.displayName).tag(quality)
+                        Text(quality.localizedDisplayName).tag(quality)
                     }
                 }
                 .pickerStyle(.menu)
@@ -260,10 +260,10 @@ struct ContentView: View {
             }
 
             VStack(alignment: .leading, spacing: 6) {
-                Text("Destination")
+                Text(AppText.labelDestination)
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.82))
-                Text("Converted files stay in app storage until you export them from the queue.")
+                Text(AppText.labelDestinationDetail)
                     .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(.white.opacity(0.72))
             }
@@ -275,7 +275,7 @@ struct ContentView: View {
 
     private var controlsCard: some View {
         VStack(alignment: .leading, spacing: 14) {
-            sectionTitle("Controls")
+            sectionTitle(AppText.sectionControls)
 
             actionButton(
                 title: startButtonTitle,
@@ -289,7 +289,7 @@ struct ContentView: View {
 
             HStack(spacing: 10) {
                 secondaryButton(
-                    title: viewModel.isPaused ? "Resume" : "Pause",
+                    title: viewModel.isPaused ? AppText.buttonResume : AppText.buttonPause,
                     systemImage: viewModel.isPaused ? "play.fill" : "pause.fill"
                 ) {
                     viewModel.togglePause()
@@ -297,7 +297,7 @@ struct ContentView: View {
                 .disabled(!viewModel.isConverting)
 
                 secondaryButton(
-                    title: "Stop",
+                    title: AppText.buttonStop,
                     systemImage: "stop.fill"
                 ) {
                     viewModel.stopConversion()
@@ -321,11 +321,11 @@ struct ContentView: View {
 
     private var progressCard: some View {
         VStack(alignment: .leading, spacing: 14) {
-            sectionTitle("Progress")
+            sectionTitle(AppText.sectionProgress)
 
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Text("Overall")
+                    Text(AppText.labelOverall)
                         .font(.system(size: 13, weight: .semibold, design: .rounded))
                         .foregroundStyle(.white.opacity(0.82))
                     Spacer()
@@ -339,7 +339,7 @@ struct ContentView: View {
             }
 
             VStack(alignment: .leading, spacing: 6) {
-                Text("Current File")
+                Text(AppText.labelCurrentFile)
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .foregroundStyle(.white.opacity(0.82))
 
@@ -363,7 +363,7 @@ struct ContentView: View {
 
     private var panelCard: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Picker("Panel", selection: $selectedPanel) {
+            Picker(AppText.panelQueue, selection: $selectedPanel) {
                 ForEach(DashboardPanel.allCases) { panel in
                     Text(panel.title).tag(panel)
                 }
@@ -388,8 +388,8 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 12) {
             if viewModel.queueItems.isEmpty {
                 emptyState(
-                    title: "No Files Yet",
-                    message: "Import a folder or multiple audio files to build the batch queue."
+                    title: AppText.emptyQueueTitle,
+                    message: AppText.emptyQueueMessage
                 )
             } else {
                 ForEach(viewModel.queueItems) { item in
@@ -403,8 +403,8 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 10) {
             if viewModel.activityLog.isEmpty {
                 emptyState(
-                    title: "No Activity",
-                    message: "Logs will appear here once you start importing or converting."
+                    title: AppText.emptyLogTitle,
+                    message: AppText.emptyLogMessage
                 )
             } else {
                 ForEach(viewModel.activityLog) { entry in
@@ -422,13 +422,13 @@ struct ContentView: View {
 
     private var statsPanel: some View {
         VStack(alignment: .leading, spacing: 14) {
-            statRow(title: "Queued Files", value: "\(viewModel.totalCount)")
-            statRow(title: "Waiting", value: "\(viewModel.waitingCount)")
-            statRow(title: "Converted", value: "\(viewModel.successCount)")
-            statRow(title: "Failed", value: "\(viewModel.failedCount)")
-            statRow(title: "Remaining", value: "\(viewModel.remainingCount)")
+            statRow(title: AppText.statsQueuedFiles, value: "\(viewModel.totalCount)")
+            statRow(title: AppText.statsWaiting, value: "\(viewModel.waitingCount)")
+            statRow(title: AppText.statsConverted, value: "\(viewModel.successCount)")
+            statRow(title: AppText.statsFailed, value: "\(viewModel.failedCount)")
+            statRow(title: AppText.statsRemaining, value: "\(viewModel.remainingCount)")
             statRow(
-                title: "Success Rate",
+                title: AppText.statsSuccessRate,
                 value: viewModel.totalCount == 0
                     ? "0%"
                     : String(format: "%.1f%%", (Double(viewModel.successCount) / Double(viewModel.totalCount)) * 100)
@@ -468,7 +468,7 @@ struct ContentView: View {
 
             if let outputURL = item.outputURL {
                 ShareLink(item: outputURL) {
-                    Label("Export Converted File", systemImage: "square.and.arrow.up")
+                    Label(AppText.buttonExportFile, systemImage: "square.and.arrow.up")
                         .font(.system(size: 13, weight: .semibold, design: .rounded))
                         .foregroundStyle(Color(red: 0.08, green: 0.1, blue: 0.16))
                         .padding(.horizontal, 12)
@@ -576,22 +576,22 @@ struct ContentView: View {
 
     private var queueSummaryText: String {
         if viewModel.totalCount == 0 {
-            return "No files in the queue yet."
+            return AppText.queueSummaryEmpty
         }
 
         if viewModel.totalCount == 1 {
-            return "1 file queued."
+            return AppText.queueSummarySingle
         }
 
-        return "\(viewModel.totalCount) files queued, \(viewModel.waitingCount) still waiting."
+        return AppText.queueSummary(total: viewModel.totalCount, waiting: viewModel.waitingCount)
     }
 
     private var startButtonTitle: String {
         if viewModel.totalCount <= 1 {
-            return "Start Conversion"
+            return AppText.buttonStartSingle
         }
 
-        return "Start Batch Conversion (\(viewModel.waitingCount))"
+        return "\(AppText.buttonStartBatchPrefix) (\(viewModel.waitingCount))"
     }
 
     private var statusColor: Color {

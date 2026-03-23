@@ -11,6 +11,15 @@ enum AudioQuality: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 
     var displayName: String { rawValue }
+    
+    var localizedDisplayName: String {
+        switch self {
+        case .lossless:
+            return "\u{65E0}\u{635F}"
+        default:
+            return rawValue
+        }
+    }
 
     var bitrate: String {
         switch self {

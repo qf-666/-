@@ -11,15 +11,15 @@ struct ConversionQueueItem: Identifiable {
         var title: String {
             switch self {
             case .waiting:
-                return "Waiting"
+                return AppText.statusWaiting
             case .converting:
-                return "Converting"
+                return AppText.statusConverting
             case .success:
-                return "Success"
+                return AppText.statusSuccess
             case .failed:
-                return "Failed"
+                return AppText.statusFailedText
             case .skipped:
-                return "Skipped"
+                return AppText.statusSkipped
             }
         }
 
@@ -45,4 +45,3 @@ struct ConversionQueueItem: Identifiable {
         self.status = .waiting
     }
 }
-

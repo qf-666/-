@@ -8,11 +8,11 @@ enum AudioConversionError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case let .protectedVendorFormat(extensionName):
-            return "Detected a protected or vendor-specific format: \(extensionName). This app does not decrypt or convert it."
+            return AppText.errorProtectedPrefix + " \(extensionName)" + AppText.errorProtectedSuffix
         case let .missingOutput(exitCode):
-            return "FFmpeg finished without creating an output file. Exit code: \(exitCode)."
+            return AppText.errorMissingOutput(exitCode)
         case let .ffmpegFailed(exitCode):
-            return "FFmpeg failed during conversion. Exit code: \(exitCode)."
+            return AppText.errorFFmpegFailed(exitCode)
         }
     }
 }
