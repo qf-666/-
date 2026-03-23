@@ -45,8 +45,12 @@ struct ContentView: View {
                 allowsMultipleSelection: false
             ) { result in
                 switch result {
-                case let .success(url):
-                    viewModel.importFile(from: url)
+                case let .success(urls):
+                    if let url = urls.first {
+                        viewModel.importFile(from: url)
+                    } else {
+                        viewModel.present(error: CocoaError(.fileReadUnknown))
+                    }
                 case let .failure(error):
                     viewModel.present(error: error)
                 }
